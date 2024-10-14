@@ -1,264 +1,257 @@
-// Existing code...
+// Initialize trips array from localStorage or create an empty array
+let trips = JSON.parse(localStorage.getItem('trips')) || [];
 
-// New functions for advanced analytics
-function updateAdvancedAnalytics() {
-    updateTimeSeriesChart();
-    updateGeographicDistribution();
-    updateFinancialTrends();
+// DOM elements
+const tripForm = document.getElementById('tripForm');
+const analysisResult = document.getElementById('analysisResult');
+const tripData = document.getElementById('tripData');
+const financialAnalysis = document.getElementById('financialAnalysis');
+const tripTrackingData = document.getElementById('tripTrackingData');
+const patientAnalysisData = document.getElementById('patientAnalysisData');
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    updateTripTable();
+    updateAnalysis();
+    updateFinancialRecords();
+    updateTripTracking();
+    updatePatientAnalysis();
+    updateAdvancedAnalytics();
+});
+
+tripForm.addEventListener('submit', handleTripSubmission);
+document.getElementById('cancelTrip').addEventListener('click', resetForm);
+document.getElementById('exportAllData').addEventListener('click', exportAllData);
+document.getElementById('exportCSV').addEventListener('click', exportCSV);
+document.getElementById('exportExcel').addEventListener('click', exportExcel);
+document.getElementById('generateReport').addEventListener('click', generateReport);
+document.getElementById('reportType').addEventListener('change', toggleCustomDateInputs);
+
+function handleTripSubmission(e) {
+    e.preventDefault();
+    const newTrip = {
+        id: Date.now(),
+        patientName: document.getElementById('patientName').value,
+        patientDetails: document.getElementById('patientDetails').value,
+        fromCity: document.getElementById('fromCity').value,
+        fromHospital: document.getElementById('fromHospital').value,
+        toCity: document.getElementById('toCity').value,
+        toHospital: document.getElementById('toHospital').value,
+        driverName: document.getElementById('driverName').value,
+        nursingStaff: document.getElementById('nursingStaff').value,
+        patientStatus: document.getElementById('patientStatus').value,
+        statusDescription: document.getElementById('statusDescription').value,
+        distance: parseFloat(document.getElementById('distance').value),
+        chargePerKm: parseFloat(document.getElementById('chargePerKm').value),
+        ambulanceNumber: document.getElementById('ambulanceNumber').value,
+        amountCharged: parseFloat(document.getElementById('amountCharged').value),
+        expenditure: parseFloat(document.getElementById('expenditure').value),
+        driverExpenditure: parseFloat(document.getElementById('driverExpenditure').value),
+        fuelExpenditure: parseFloat(document.getElementById('fuelExpenditure').value),
+        maintenanceExpenditure: parseFloat(document.getElementById('maintenanceExpenditure').value),
+        miscellaneousExpenditure: parseFloat(document.getElementById('miscellaneousExpenditure').value),
+        nursingExpenditure: parseFloat(document.getElementById('nursingExpenditure').value),
+        date: new Date().toISOString()
+    };
+
+    trips.push(newTrip);
+    localStorage.setItem('trips', JSON.stringify(trips));
+    resetForm();
+    updateTripTable();
+    updateAnalysis();
+    updateFinancialRecords();
+    updateTripTracking();
+    updatePatientAnalysis();
+    updateAdvancedAnalytics();
 }
 
-function updateTimeSeriesChart() {
-    const ctx = document.getElementById('timeSeriesChart').getContext('2d');
-    const dailyData = getDailyTripData();
-
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: dailyData.dates,
-            datasets: [{
-                label: 'Number of Trips',
-                data: dailyData.tripCounts,
-                borderColor: 'rgba(75, 192, 192, 1)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            title: {
-                display: true,
-                text: 'Daily Trip Count'
-            }
-        }
-    });
+function resetForm() {
+    tripForm.reset();
 }
 
-function getDailyTripData() {
-    const tripDates = trips.map(trip => moment(trip.date).format('YYYY-MM-DD'));
-    const uniqueDates = [...new Set(tripDates)].sort();
-    const tripCounts = uniqueDates.map(date => 
-        trips.filter(trip => moment(trip.date).format('YYYY-MM-DD') === date).length
-    );
-
-    return { dates: uniqueDates, tripCounts };
-}
-
-function updateGeographicDistribution() {
-    const cityData = {};
+function updateTripTable() {
+    tripData.innerHTML = '';
     trips.forEach(trip => {
-        cityData[trip.fromCity] = (cityData[trip.fromCity] || 0) + 1;
-        cityData[trip.toCity] = (cityData[trip.toCity] || 0) + 1;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${trip.patientName}</td>
+            <td>${trip.fromCity} - ${trip.fromHospital}</td>
+            <td>${trip.toCity} - ${trip.toHospital}</td>
+            <td>${trip.amountCharged}</td>
+            <td>${trip.expenditure}</td>
+            <td>${trip.patientStatus}</td>
+            <td>
+                <button onclick="editTrip(${trip.id})">Edit</button>
+                <button onclick="deleteTrip(${trip.id})">Delete</button>
+            </td>
+        `;
+        tripData.appendChild(row);
     });
+}
 
-    const ctx = document.getElementById('geographicDistribution').getContext('2d');
+function editTrip(id) {
+    const trip = trips.find(t => t.id === id);
+    if (trip) {
+        Object.keys(trip).forEach(key => {
+            const element = document.getElementById(key);
+            if (element) element.value = trip[key];
+        });
+        trips = trips.filter(t => t.id !== id);
+    }
+}
+function deleteTrip(id) {
+    trips = trips.filter(t => t.id !== id);
+    localStorage.setItem('trips', JSON.stringify(trips));
+    updateTripTable();
+    updateAnalysis();
+    updateFinancialRecords();
+    updateTripTracking();
+    updatePatientAnalysis();
+    updateAdvancedAnalytics();
+}
+
+function updateAnalysis() {
+    const totalTrips = trips.length;
+    const totalRevenue = trips.reduce((sum, trip) => sum + trip.amountCharged, 0);
+    const totalExpenditure = trips.reduce((sum, trip) => sum + trip.expenditure, 0);
+    const profit = totalRevenue - totalExpenditure;
+
+    analysisResult.innerHTML = `
+        <p>Total Trips: ${totalTrips}</p>
+        <p>Total Revenue: ₹${totalRevenue.toFixed(2)}</p>
+        <p>Total Expenditure: ₹${totalExpenditure.toFixed(2)}</p>
+        <p>Profit: ₹${profit.toFixed(2)}</p>
+    `;
+
+    const ctx = document.getElementById('incomeExpenditureChart').getContext('2d');
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: Object.keys(cityData),
+            labels: ['Revenue', 'Expenditure'],
             datasets: [{
-                label: 'Number of Trips',
-                data: Object.values(cityData),
-                backgroundColor: 'rgba(75, 192, 192, 0.6)'
+                label: 'Amount (INR)',
+                data: [totalRevenue, totalExpenditure],
+                backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(255, 99, 132, 0.6)']
             }]
         },
         options: {
-            responsive: true,
-            title: {
-                display: true,
-                text: 'Geographic Distribution of Trips'
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
             }
         }
     });
 }
 
-function updateFinancialTrends() {
-    const monthlyData = getMonthlyFinancialData();
+function updateFinancialRecords() {
+    const totalRevenue = trips.reduce((sum, trip) => sum + trip.amountCharged, 0);
+    const totalExpenditure = trips.reduce((sum, trip) => sum + trip.expenditure, 0);
+    const driverExpenditure = trips.reduce((sum, trip) => sum + trip.driverExpenditure, 0);
+    const fuelExpenditure = trips.reduce((sum, trip) => sum + trip.fuelExpenditure, 0);
+    const maintenanceExpenditure = trips.reduce((sum, trip) => sum + trip.maintenanceExpenditure, 0);
+    const miscellaneousExpenditure = trips.reduce((sum, trip) => sum + trip.miscellaneousExpenditure, 0);
+    const nursingExpenditure = trips.reduce((sum, trip) => sum + trip.nursingExpenditure, 0);
 
-    const ctx = document.getElementById('financialTrends').getContext('2d');
+    financialAnalysis.innerHTML = `
+        <p>Total Revenue: ₹${totalRevenue.toFixed(2)}</p>
+        <p>Total Expenditure: ₹${totalExpenditure.toFixed(2)}</p>
+        <p>Net Profit: ₹${(totalRevenue - totalExpenditure).toFixed(2)}</p>
+    `;
+
+    const ctx = document.getElementById('expenditureBreakdownChart').getContext('2d');
     new Chart(ctx, {
-        type: 'line',
+        type: 'pie',
         data: {
-            labels: monthlyData.months,
+            labels: ['Driver', 'Fuel', 'Maintenance', 'Miscellaneous', 'Nursing'],
             datasets: [{
-                label: 'Income',
-                data: monthlyData.income,
-                borderColor: 'rgba(75, 192, 192, 1)',
-                tension: 0.1
-            }, {
-                label: 'Expenditure',
-                data: monthlyData.expenditure,
-                borderColor: 'rgba(255, 99, 132, 1)',
-                tension: 0.1
+                data: [driverExpenditure, fuelExpenditure, maintenanceExpenditure, miscellaneousExpenditure, nursingExpenditure],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(153, 102, 255, 0.6)'
+                ]
             }]
-        },
-        options: {
-            responsive: true,
-            title: {
-                display: true,
-                text: 'Monthly Financial Trends'
-            }
         }
     });
 }
 
-function getMonthlyFinancialData() {
-    const monthlyData = trips.reduce((acc, trip) => {
-        const month = moment(trip.date).format('YYYY-MM');
-        if (!acc[month]) {
-            acc[month] = { income: 0, expenditure: 0 };
-        }
-        acc[month].income += trip.amountCharged;
-        acc[month].expenditure += trip.expenditure;
-        return acc;
+function updateTripTracking() {
+    const totalDistance = trips.reduce((sum, trip) => sum + trip.distance, 0);
+    const averageDistance = totalDistance / trips.length || 0;
+    const mostFrequentRoute = getMostFrequentRoute();
+
+    tripTrackingData.innerHTML = `
+        <p>Total Distance Covered: ${totalDistance.toFixed(2)} km</p>
+        <p>Average Trip Distance: ${averageDistance.toFixed(2)} km</p>
+        <p>Most Frequent Route: ${mostFrequentRoute}</p>
+    `;
+}
+
+function getMostFrequentRoute() {
+    const routeCounts = {};
+    trips.forEach(trip => {
+        const route = `${trip.fromCity} to ${trip.toCity}`;
+        routeCounts[route] = (routeCounts[route] || 0) + 1;
+    });
+    return Object.entries(routeCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+}
+
+function updatePatientAnalysis() {
+    const patientStatusCount = trips.reduce((count, trip) => {
+        count[trip.patientStatus] = (count[trip.patientStatus] || 0) + 1;
+        return count;
     }, {});
 
-    const sortedMonths = Object.keys(monthlyData).sort();
-    const income = sortedMonths.map(month => monthlyData[month].income);
-    const expenditure = sortedMonths.map(month => monthlyData[month].expenditure);
+    patientAnalysisData.innerHTML = `
+        <p>Object.entries(patientStatusCount).map(([status, count]) => {
+        return `<p>${status}: ${count}</p>`;
+    }).join('');
 
-    return { months: sortedMonths, income, expenditure };
+    const ctx = document.getElementById('patientStatusChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(patientStatusCount),
+            datasets: [{
+                label: 'Patient Status Count',
+                data: Object.values(patientStatusCount),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(153, 102, 255, 0.6)'
+                ]
+            }]
+        }
+    });
 }
 
-// Enhanced export functions
+function updateAdvancedAnalytics() {
+    // Additional analytics can be added here.
+}
+
 function exportAllData() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(trips, null, 2));
-    downloadFile(dataStr, 'ambulance_trip_data.json');
+    // Implement export logic for all data
 }
 
 function exportCSV() {
-    const csv = Papa.unparse(trips);
-    const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
-    downloadFile(dataStr, 'ambulance_trip_data.csv');
+    // Implement CSV export logic
 }
 
 function exportExcel() {
-    const worksheet = XLSX.utils.json_to_sheet(trips);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Trips");
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const dataStr = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + btoa(String.fromCharCode.apply(null, new Uint8Array(excelBuffer)));
-    downloadFile(dataStr, 'ambulance_trip_data.xlsx');
+    // Implement Excel export logic
 }
 
-function downloadFile(dataStr, filename) {
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", filename);
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-}
-
-// Enhanced report generation
 function generateReport() {
+    // Implement report generation logic
+}
+
+function toggleCustomDateInputs() {
     const reportType = document.getElementById('reportType').value;
-    let startDate, endDate;
-
-    if (reportType === 'custom') {
-        startDate = new Date(document.getElementById('startDate').value);
-        endDate = new Date(document.getElementById('endDate').value);
-    } else {
-        const dateRange = getDateRange(reportType);
-        startDate = dateRange.startDate;
-        endDate = dateRange.endDate;
-    }
-
-    const reportData = getReportData(startDate, endDate);
-    
-    const reportWindow = window.open('', 'Report', 'width=800,height=600');
-    reportWindow.document.write(`
-        <h2>${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report</h2>
-        <p>Period: ${startDate.toDateString()} - ${endDate.toDateString()}</p>
-        <pre>${JSON.stringify(reportData, null, 2)}</pre>
-        <button onclick="window.print()">Print</button>
-    `);
+    const customDateInputs = document.getElementById('customDateInputs');
+    customDateInputs.style.display = reportType === 'custom' ? 'block' : 'none';
 }
-
-function getDateRange(reportType) {
-    const now = new Date();
-    let startDate;
-
-    switch(reportType) {
-        case 'daily':
-            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            break;
-        case 'weekly':
-            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
-            break;
-        case 'monthly':
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-        case 'yearly':
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-    }
-
-    return { startDate, endDate: now };
-}
-
-function getReportData(startDate, endDate) {
-    const filteredTrips = trips.filter(trip => {
-        const tripDate = new Date(trip.date);
-        return tripDate >= startDate && tripDate <= endDate;
-    });
-
-    const totalIncome = filteredTrips.reduce((sum, trip) => sum + trip.amountCharged, 0);
-    const totalExpenditure = filteredTrips.reduce((sum, trip) => sum + trip.expenditure, 0);
-
-    return {
-        totalTrips: filteredTrips.length,
-        totalIncome,
-        totalExpenditure,
-        netProfit: totalIncome - totalExpenditure,
-        averageTripDistance: getAverageTripDistance(filteredTrips),
-        mostVisitedCities: getMostVisitedCities(filteredTrips, 5),
-        patientStatusDistribution: getPatientStatusDistribution(filteredTrips)
-    };
-}
-
-function getAverageTripDistance(trips) {
-    const totalDistance = trips.reduce((sum, trip) => sum + trip.distance, 0);
-    return totalDistance / trips.length;
-}
-
-function getMostVisitedCities(trips, limit) {
-    const cityCount = {};
-    trips.forEach(trip => {
-        cityCount[trip.fromCity] = (cityCount[trip.fromCity] || 0) + 1;
-        cityCount[trip.toCity] = (cityCount[trip.toCity] || 0) + 1;
-    });
-    return Object.entries(cityCount)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, limit)
-        .map(([city, count]) => ({ city, count }));
-}
-
-function getPatientStatusDistribution(trips) {
-    const statusCount = {};
-    trips.forEach(trip => {
-        statusCount[trip.patientStatus] = (statusCount[trip.patientStatus] || 0) + 1;
-    });
-    return Object.entries(statusCount).map(([status, count]) => ({ status, count }));
-}
-
-// Event listeners
-document.getElementById('exportCSV').addEventListener('click', exportCSV);
-document.getElementById('exportExcel').addEventListener('click', exportExcel);
-document.getElementById('reportType').addEventListener('change', function() {
-    const customDateInputs = document.getElementById('startDate').style;
-    const endDateInput = document.getElementById('endDate').style;
-    if (this.value === 'custom') {
-        customDateInputs.display = 'inline-block';
-        endDateInput.display = 'inline-block';
-    } else {
-        customDateInputs.display = 'none';
-        endDateInput.display = 'none';
-    }
-});
-
-// Initialize the page
-updateTripTable();
-updateAnalysis();
-updateFinancialAnalysis();
-updateTripTracking();
-updatePatientAnalysis();
-updateAdvancedAnalytics();
