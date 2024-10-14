@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateFinancialRecords();
     updateTripTracking();
     updatePatientAnalysis();
-    updateAdvancedAnalytics();
 });
 
 tripForm.addEventListener('submit', handleTripSubmission);
@@ -25,8 +24,8 @@ document.getElementById('exportAllData').addEventListener('click', exportAllData
 document.getElementById('exportCSV').addEventListener('click', exportCSV);
 document.getElementById('exportExcel').addEventListener('click', exportExcel);
 document.getElementById('generateReport').addEventListener('click', generateReport);
-document.getElementById('reportType').addEventListener('change', toggleCustomDateInputs);
 
+// Trip submission
 function handleTripSubmission(e) {
     e.preventDefault();
     const newTrip = {
@@ -41,16 +40,16 @@ function handleTripSubmission(e) {
         nursingStaff: document.getElementById('nursingStaff').value,
         patientStatus: document.getElementById('patientStatus').value,
         statusDescription: document.getElementById('statusDescription').value,
-        distance: parseFloat(document.getElementById('distance').value),
-        chargePerKm: parseFloat(document.getElementById('chargePerKm').value),
+        distance: validateNumber('distance'),
+        chargePerKm: validateNumber('chargePerKm'),
         ambulanceNumber: document.getElementById('ambulanceNumber').value,
-        amountCharged: parseFloat(document.getElementById('amountCharged').value),
-        expenditure: parseFloat(document.getElementById('expenditure').value),
-        driverExpenditure: parseFloat(document.getElementById('driverExpenditure').value),
-        fuelExpenditure: parseFloat(document.getElementById('fuelExpenditure').value),
-        maintenanceExpenditure: parseFloat(document.getElementById('maintenanceExpenditure').value),
-        miscellaneousExpenditure: parseFloat(document.getElementById('miscellaneousExpenditure').value),
-        nursingExpenditure: parseFloat(document.getElementById('nursingExpenditure').value),
+        amountCharged: validateNumber('amountCharged'),
+        expenditure: validateNumber('expenditure'),
+        driverExpenditure: validateNumber('driverExpenditure'),
+        fuelExpenditure: validateNumber('fuelExpenditure'),
+        maintenanceExpenditure: validateNumber('maintenanceExpenditure'),
+        miscellaneousExpenditure: validateNumber('miscellaneousExpenditure'),
+        nursingExpenditure: validateNumber('nursingExpenditure'),
         date: new Date().toISOString()
     };
 
@@ -62,13 +61,19 @@ function handleTripSubmission(e) {
     updateFinancialRecords();
     updateTripTracking();
     updatePatientAnalysis();
-    updateAdvancedAnalytics();
 }
 
+function validateNumber(id) {
+    const value = parseFloat(document.getElementById(id).value);
+    return isNaN(value) ? 0 : value;
+}
+
+// Reset form
 function resetForm() {
     tripForm.reset();
 }
 
+// Update Trip Table
 function updateTripTable() {
     tripData.innerHTML = '';
     trips.forEach(trip => {
@@ -89,6 +94,7 @@ function updateTripTable() {
     });
 }
 
+// Edit Trip
 function editTrip(id) {
     const trip = trips.find(t => t.id === id);
     if (trip) {
@@ -99,6 +105,7 @@ function editTrip(id) {
         trips = trips.filter(t => t.id !== id);
     }
 }
+// Delete Trip
 function deleteTrip(id) {
     trips = trips.filter(t => t.id !== id);
     localStorage.setItem('trips', JSON.stringify(trips));
@@ -107,9 +114,9 @@ function deleteTrip(id) {
     updateFinancialRecords();
     updateTripTracking();
     updatePatientAnalysis();
-    updateAdvancedAnalytics();
 }
 
+// Analysis and Charts
 function updateAnalysis() {
     const totalTrips = trips.length;
     const totalRevenue = trips.reduce((sum, trip) => sum + trip.amountCharged, 0);
@@ -122,26 +129,7 @@ function updateAnalysis() {
         <p>Total Expenditure: ₹${totalExpenditure.toFixed(2)}</p>
         <p>Profit: ₹${profit.toFixed(2)}</p>
     `;
-
-    const ctx = document.getElementById('incomeExpenditureChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Revenue', 'Expenditure'],
-            datasets: [{
-                label: 'Amount (INR)',
-                data: [totalRevenue, totalExpenditure],
-                backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(255, 99, 132, 0.6)']
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
+    renderChart('incomeExpenditureChart', ['Revenue', 'Expenditure'], [totalRevenue, totalExpenditure], 'bar');
 }
 
 function updateFinancialRecords() {
@@ -158,26 +146,11 @@ function updateFinancialRecords() {
         <p>Total Expenditure: ₹${totalExpenditure.toFixed(2)}</p>
         <p>Net Profit: ₹${(totalRevenue - totalExpenditure).toFixed(2)}</p>
     `;
-
-    const ctx = document.getElementById('expenditureBreakdownChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: ['Driver', 'Fuel', 'Maintenance', 'Miscellaneous', 'Nursing'],
-            datasets: [{
-                data: [driverExpenditure, fuelExpenditure, maintenanceExpenditure, miscellaneousExpenditure, nursingExpenditure],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.6)',
-                    'rgba(54, 162, 235, 0.6)',
-                    'rgba(255, 206, 86, 0.6)',
-                    'rgba(75, 192, 192, 0.6)',
-                    'rgba(153, 102, 255, 0.6)'
-                ]
-            }]
-        }
-    });
+    renderChart('expenditureBreakdownChart', ['Driver', 'Fuel', 'Maintenance', 'Miscellaneous', 'Nursing'],
+        [driverExpenditure, fuelExpenditure, maintenanceExpenditure, miscellaneousExpenditure, nursingExpenditure], 'pie');
 }
 
+// Tracking trips
 function updateTripTracking() {
     const totalDistance = trips.reduce((sum, trip) => sum + trip.distance, 0);
     const averageDistance = totalDistance / trips.length || 0;
@@ -199,59 +172,39 @@ function getMostFrequentRoute() {
     return Object.entries(routeCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0];
 }
 
+// Patient analysis
 function updatePatientAnalysis() {
     const patientStatusCount = trips.reduce((count, trip) => {
         count[trip.patientStatus] = (count[trip.patientStatus] || 0) + 1;
         return count;
     }, {});
 
-    patientAnalysisData.innerHTML = `
-        <p>Object.entries(patientStatusCount).map(([status, count]) => {
+    patientAnalysisData.innerHTML = Object.entries(patientStatusCount).map(([status, count]) => {
         return `<p>${status}: ${count}</p>`;
     }).join('');
 
-    const ctx = document.getElementById('patientStatusChart').getContext('2d');
+    renderChart('patientStatusChart', Object.keys(patientStatusCount), Object.values(patientStatusCount), 'doughnut');
+}
+
+// Generic Chart rendering function
+function renderChart(elementId, labels, data, type) {
+    const ctx = document.getElementById(elementId).getContext('2d');
     new Chart(ctx, {
-        type: 'doughnut',
+        type: type,
         data: {
-            labels: Object.keys(patientStatusCount),
+            labels: labels,
             datasets: [{
-                label: 'Patient Status Count',
-                data: Object.values(patientStatusCount),
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.6)',
-                    'rgba(54, 162, 235, 0.6)',
-                    'rgba(255, 206, 86, 0.6)',
-                    'rgba(75, 192, 192, 0.6)',
-                    'rgba(153, 102, 255, 0.6)'
-                ]
+                label: 'Amount (INR)',
+                data: data,
+                backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)']
             }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
         }
     });
-}
-
-function updateAdvancedAnalytics() {
-    // Additional analytics can be added here.
-}
-
-function exportAllData() {
-    // Implement export logic for all data
-}
-
-function exportCSV() {
-    // Implement CSV export logic
-}
-
-function exportExcel() {
-    // Implement Excel export logic
-}
-
-function generateReport() {
-    // Implement report generation logic
-}
-
-function toggleCustomDateInputs() {
-    const reportType = document.getElementById('reportType').value;
-    const customDateInputs = document.getElementById('customDateInputs');
-    customDateInputs.style.display = reportType === 'custom' ? 'block' : 'none';
 }
