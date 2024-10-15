@@ -79,10 +79,11 @@ button:hover {
     background-color: #333;
 }
 
-#analysisResult, #financialAnalysis, #tripTrackingData, #patientAnalysisData {
+#analysisResult, #tripList {
     background-color: #f4f4f4;
     padding: 1rem;
     border-radius: 4px;
+    margin-top: 1rem;
 }
 
 canvas {
@@ -91,7 +92,17 @@ canvas {
     margin-top: 1rem;
 }
 
-#dataExportSection, #reportGeneration {
+.search-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+#searchInput {
+    flex-grow: 1;
+}
+
+#exportOptions, #reportGeneration {
     margin-top: 1rem;
 }
 
@@ -112,5 +123,9 @@ footer {
 
     nav ul li {
         margin-bottom: 0.5rem;
+    }
+
+    .search-container {
+        flex-direction: column;
     }
 }
