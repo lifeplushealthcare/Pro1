@@ -1,144 +1,147 @@
-// Initialize trips array from localStorage or create an empty array
-let trips = JSON.parse(localStorage.getItem('trips')) || [];
+// Initialize Supabase client
+const supabaseUrl = 'YOUR_SUPABASE_PROJECT_URL';
+const supabaseKey = 'YOUR_SUPABASE_PUBLIC_ANON_KEY';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 // DOM elements
-const tripForm = document.getElementById('tripForm');
-const tripTable = document.getElementById('tripData');
-const analysisResult = document.getElementById('analysisResult');
-const incomeExpenditureChart = document.getElementById('incomeExpenditureChart');
-const financialAnalysis = document.getElementById('financialAnalysis');
-const tripTrackingData = document.getElementById('tripTrackingData');
-const patientAnalysisData = document.getElementById('patientAnalysisData');
+const newTripForm = document.getElementById('newTripForm');
+const tripHistoryList = document.getElementById('tripHistoryList');
+const totalEarnings = document.getElementById('totalEarnings');
+const totalExpenditures = document.getElementById('totalExpenditures');
+const netProfit = document.getElementById('netProfit');
 
 // Event listeners
-tripForm.addEventListener('submit', handleTripSubmission);
-document.getElementById('cancelTrip').addEventListener('click', handleTripCancellation);
-document.getElementById('exportAllData').addEventListener('click', exportAllData);
-document.getElementById('generateReport').addEventListener('click', generateReport);
+newTripForm.addEventListener('submit', handleNewTrip);
 
-// Handle trip submission
-function handleTripSubmission(e) {
-    e.preventDefault();
-    
-    const newTrip = {
-        patientName: document.getElementById('patientName').value,
-        patientDetails: document.getElementById('patientDetails').value,
-        fromCity: document.getElementById('fromCity').value,
-        fromHospital: document.getElementById('fromHospital').value,
-        toCity: document.getElementById('toCity').value,
-        toHospital: document.getElementById('toHospital').value,
-        driverName: document.getElementById('driverName').value,
-        nursingStaff: document.getElementById('nursingStaff').value,
-        patientStatus: document.getElementById('patientStatus').value,
-        statusDescription: document.getElementById('statusDescription').value,
-        distance: parseFloat(document.getElementById('distance').value) || 0,
-        chargePerKm: parseFloat(document.getElementById('chargePerKm').value) || 0,
-        ambulanceNumber: document.getElementById('ambulanceNumber').value,
-        amountCharged: parseFloat(document.getElementById('amountCharged').value),
-        expenditure: parseFloat(document.getElementById('expenditure').value),
-        driverExpenditure: parseFloat(document.getElementById('driverExpenditure').value),
-        fuelExpenditure: parseFloat(document.getElementById('fuelExpenditure').value),
-        maintenanceExpenditure: parseFloat(document.getElementById('maintenanceExpenditure').value),
-        miscellaneousExpenditure: parseFloat(document.getElementById('miscellaneousExpenditure').value),
-        nursingExpenditure: parseFloat(document.getElementById('nursingExpenditure').value),
-        status: 'Completed',
-        date: new Date().toISOString()
-    };
-
-    trips.push(newTrip);
-    saveTrips();
-    updateTripTable();
-    updateAnalysis();
-    updateFinancialAnalysis();
-    updateTripTracking();
-    updatePatientAnalysis();
-    tripForm.reset();
-}
-
-// Handle trip cancellation
-function handleTripCancellation() {
-    const cancelledTrip = {
-        patientName: document.getElementById('patientName').value,
-        fromCity: document.getElementById('fromCity').value,
-        toCity: document.getElementById('toCity').value,
-        status: 'Cancelled',
-        date: new Date().toISOString()
-    };
-
-    trips.push(cancelledTrip);
-    saveTrips();
-    updateTripTable();
-    updateAnalysis();
-    updateFinancialAnalysis();
-    updateTripTracking();
-    updatePatientAnalysis();
-    tripForm.reset();
-}
-
-// Save trips to localStorage
-function saveTrips() {
-    localStorage.setItem('trips', JSON.stringify(trips));
-}
-
-// Update trip table
-function updateTripTable() {
-    tripTable.innerHTML = '';
-    trips.forEach((trip, index) => {
-        const row = tripTable.insertRow();
-        row.innerHTML = `
-            <td>${trip.patientName}</td>
-            <td>${trip.fromCity}</td>
-            <td>${trip.toCity}</td>
-            <td>${trip.amountCharged || 'N/A'}</td>
-            <td>${trip.expenditure || 'N/A'}</td>
-            <td>${trip.status}</td>
-            <td><button onclick="viewTripDetails(${index})">View Details</button></td>
-        `;
+// Functions to show/hide sections
+function showSection(sectionId) {
+    const sections = ['tripForm', 'tripHistory', 'financialDashboard', 'analytics'];
+    sections.forEach(id => {
+        document.getElementById(id).classList.add('hidden');
     });
+    document.getElementById(sectionId).classList.remove('hidden');
+
+    if (sectionId === 'tripHistory') {
+        loadTripHistory();
+    } else if (sectionId === 'financialDashboard') {
+        loadFinancialDashboard();
+    } else if (sectionId === 'analytics') {
+        loadAnalytics();
+    }
 }
 
-// ... (previous code remains the same)
+// Handle new trip submission
+async function handleNewTrip(event) {
+    event.preventDefault();
+    const formData = new FormData(newTripForm);
+    const tripData = Object.fromEntries(formData.entries());
 
-// View trip details
-function viewTripDetails(index) {
-    const trip = trips[index];
-    const detailsWindow = window.open('', 'Trip Details', 'width=600,height=600');
-    detailsWindow.document.write(`
-        <h2>Trip Details</h2>
-        <pre>${JSON.stringify(trip, null, 2)}</pre>
-        <button onclick="window.print()">Print</button>
-    `);
+    // Calculate total charges
+    tripData.totalCharges = tripData.distance * tripData.chargePerKm;
+
+    try {
+        const { data, error } = await supabase
+            .from('trips')
+            .insert([tripData]);
+
+        if (error) throw error;
+        alert('Trip submitted successfully!');
+        newTripForm.reset();
+    } catch (error) {
+        console.error('Error submitting trip:', error);
+        alert('Failed to submit trip. Please try again.');
+    }
 }
 
-// Update analysis
-function updateAnalysis() {
-    const completedTrips = trips.filter(trip => trip.status === 'Completed');
-    const totalIncome = completedTrips.reduce((sum, trip) => sum + trip.amountCharged, 0);
-    const totalExpenditure = completedTrips.reduce((sum, trip) => sum + trip.expenditure, 0);
-    const netProfit = totalIncome - totalExpenditure;
+// Load trip history
+async function loadTripHistory() {
+    try {
+        const { data, error } = await supabase
+            .from('trips')
+            .select('*')
+            .order('created_at', { ascending: false });
 
-    analysisResult.innerHTML = `
-        <p>Total Income: ₹${totalIncome.toFixed(2)}</p>
-        <p>Total Expenditure: ₹${totalExpenditure.toFixed(2)}</p>
-        <p>Net Profit: ₹${netProfit.toFixed(2)}</p>
-    `;
+        if (error) throw error;
 
-    updateIncomeExpenditureChart(totalIncome, totalExpenditure);
+        tripHistoryList.innerHTML = '';
+        data.forEach(trip => {
+            const tripElement = document.createElement('div');
+            tripElement.className = 'bg-white p-4 rounded shadow mb-4';
+            tripElement.innerHTML = `
+                <h3 class="font-semibold">${trip.patientName}</h3>
+                <p>From: ${trip.fromCity} (${trip.fromHospital})</p>
+                <p>To: ${trip.toCity} (${trip.toHospital})</p>
+                <p>Amount Charged: $${trip.amountCharged}</p>
+                <p>Status: ${trip.patientStatus}</p>
+                <p>Driver: ${trip.driverName}</p>
+                <p>Nursing Staff: ${trip.nursingStaff}</p>
+                <p>Ambulance: ${trip.ambulance}</p>
+                <p>Distance: ${trip.distance} km</p>
+                <p>Total Charges: $${trip.totalCharges}</p>
+                <button onclick="cancelTrip(${trip.id})" class="bg-red-500 text-white px-2 py-1 rounded mt-2">Cancel Trip</button>
+            `;
+            tripHistoryList.appendChild(tripElement);
+        });
+    } catch (error) {
+        console.error('Error loading trip history:', error);
+        alert('Failed to load trip history. Please try again.');
+    }
 }
 
-// Update income/expenditure chart
-function updateIncomeExpenditureChart(income, expenditure) {
-    const ctx = incomeExpenditureChart.getContext('2d');
+// Cancel a trip
+async function cancelTrip(tripId) {
+    try {
+        const { data, error } = await supabase
+            .from('trips')
+            .update({ cancelled: true })
+            .eq('id', tripId);
+
+        if (error) throw error;
+        alert('Trip cancelled successfully!');
+        loadTripHistory(); // Reload trip history
+    } catch (error) {
+        console.error('Error cancelling trip:', error);
+        alert('Failed to cancel trip. Please try again.');
+    }
+}
+// Load financial dashboard
+async function loadFinancialDashboard() {
+    try {
+        const { data, error } = await supabase
+            .from('trips')
+            .select('amountCharged, driverExpense, fuelExpense, maintenanceExpense, nursingStaffExpense')
+            .eq('cancelled', false);
+
+        if (error) throw error;
+
+        const earnings = data.reduce((sum, trip) => sum + trip.amountCharged, 0);
+        const expenditures = data.reduce((sum, trip) => 
+            sum + trip.driverExpense + trip.fuelExpense + trip.maintenanceExpense + trip.nursingStaffExpense, 0);
+        const profit = earnings - expenditures;
+
+        totalEarnings.textContent = `$${earnings.toFixed(2)}`;
+        totalExpenditures.textContent = `$${expenditures.toFixed(2)}`;
+        netProfit.textContent = `$${profit.toFixed(2)}`;
+
+        updateFinancialChart(earnings, expenditures, profit);
+        loadFinancialBreakdown();
+    } catch (error) {
+        console.error('Error loading financial dashboard:', error);
+        alert('Failed to load financial dashboard. Please try again.');
+    }
+}
+
+// Update financial chart
+function updateFinancialChart(earnings, expenditures, profit) {
+    const ctx = document.getElementById('financialChart').getContext('2d');
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Income', 'Expenditure'],
+            labels: ['Earnings', 'Expenditures', 'Profit'],
             datasets: [{
-                label: 'Amount (INR)',
-                data: [income, expenditure],
-                backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
-                borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
-                borderWidth: 1
+                label: 'Financial Overview',
+                data: [earnings, expenditures, profit],
+                backgroundColor: ['#4CAF50', '#F44336', '#2196F3']
             }]
         },
         options: {
@@ -151,156 +154,264 @@ function updateIncomeExpenditureChart(income, expenditure) {
     });
 }
 
-// Update financial analysis
-function updateFinancialAnalysis() {
-    const completedTrips = trips.filter(trip => trip.status === 'Completed');
-    const totalDriverExpenditure = completedTrips.reduce((sum, trip) => sum + trip.driverExpenditure, 0);
-    const totalFuelExpenditure = completedTrips.reduce((sum, trip) => sum + trip.fuelExpenditure, 0);
-    const totalMaintenanceExpenditure = completedTrips.reduce((sum, trip) => sum + trip.maintenanceExpenditure, 0);
-    const totalMiscellaneousExpenditure = completedTrips.reduce((sum, trip) => sum + trip.miscellaneousExpenditure, 0);
-    const totalNursingExpenditure = completedTrips.reduce((sum, trip) => sum + trip.nursingExpenditure, 0);
+// Load financial breakdown
+async function loadFinancialBreakdown() {
+    try {
+        const { data, error } = await supabase
+            .from('trips')
+            .select('driverExpense, fuelExpense, maintenanceExpense, nursingStaffExpense')
+            .eq('cancelled', false);
 
-    financialAnalysis.innerHTML = `
-        <h3>Expenditure Breakdown</h3>
-        <p>Driver Expenditure: ₹${totalDriverExpenditure.toFixed(2)}</p>
-        <p>Fuel Expenditure: ₹${totalFuelExpenditure.toFixed(2)}</p>
-        <p>Maintenance Expenditure: ₹${totalMaintenanceExpenditure.toFixed(2)}</p>
-        <p>Miscellaneous Expenditure: ₹${totalMiscellaneousExpenditure.toFixed(2)}</p>
-        <p>Nursing Expenditure: ₹${totalNursingExpenditure.toFixed(2)}</p>
-    `;
+        if (error) throw error;
 
-    // Expenditure breakdown chart
-    const ctx = document.getElementById('expenditureBreakdownChart').getContext('2d');
+        const breakdown = data.reduce((acc, trip) => {
+            acc.driverExpense += trip.driverExpense;
+            acc.fuelExpense += trip.fuelExpense;
+            acc.maintenanceExpense += trip.maintenanceExpense;
+            acc.nursingStaffExpense += trip.nursingStaffExpense;
+            return acc;
+        }, { driverExpense: 0, fuelExpense: 0, maintenanceExpense: 0, nursingStaffExpense: 0 });
+
+        updateFinancialBreakdownChart(breakdown);
+    } catch (error) {
+        console.error('Error loading financial breakdown:', error);
+        alert('Failed to load financial breakdown. Please try again.');
+    }
+}
+
+// Update financial breakdown chart
+function updateFinancialBreakdownChart(breakdown) {
+    const ctx = document.getElementById('financialBreakdownChart').getContext('2d');
     new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: ['Driver', 'Fuel', 'Maintenance', 'Miscellaneous', 'Nursing'],
+            labels: ['Driver', 'Fuel', 'Maintenance', 'Nursing Staff'],
             datasets: [{
-                data: [totalDriverExpenditure, totalFuelExpenditure, totalMaintenanceExpenditure, totalMiscellaneousExpenditure, totalNursingExpenditure],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)'
-                ]
+                data: [
+                    breakdown.driverExpense,
+                    breakdown.fuelExpense,
+                    breakdown.maintenanceExpense,
+                    breakdown.nursingStaffExpense
+                ],
+                backgroundColor: ['#FF9800', '#2196F3', '#4CAF50', '#9C27B0']
             }]
         }
     });
 }
 
-// Update trip tracking
-function updateTripTracking() {
-    const cityData = {};
-    const hospitalData = {};
-
-    trips.forEach(trip => {
-        cityData[trip.fromCity] = (cityData[trip.fromCity] || 0) + 1;
-        cityData[trip.toCity] = (cityData[trip.toCity] || 0) + 1;
-        hospitalData[trip.fromHospital] = (hospitalData[trip.fromHospital] || 0) + 1;
-        hospitalData[trip.toHospital] = (hospitalData[trip.toHospital] || 0) + 1;
-    });
-
-    tripTrackingData.innerHTML = `
-        <h3>Most Visited Cities</h3>
-        <ul>${Object.entries(cityData).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([city, count]) => `<li>${city}: ${count} trips</li>`).join('')}</ul>
-        <h3>Most Visited Hospitals</h3>
-        <ul>${Object.entries(hospitalData).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([hospital, count]) => `<li>${hospital}: ${count} trips</li>`).join('')}</ul>
-    `;
+// Load analytics
+async function loadAnalytics() {
+    loadTripsPerDay();
+    loadPatientStatusDistribution();
+    loadTripPerformance();
+    loadGeographicAnalysis();
 }
 
-// Update patient analysis
-function updatePatientAnalysis() {
-    const statusData = {};
-    trips.forEach(trip => {
-        statusData[trip.patientStatus] = (statusData[trip.patientStatus] || 0) + 1;
+// Load trips per day chart
+async function loadTripsPerDay() {
+    try {
+        const { data, error } = await supabase
+            .from('trips')
+            .select('created_at')
+            .eq('cancelled', false);
+
+        if (error) throw error;
+
+        const tripsPerDay = data.reduce((acc, trip) => {
+            const date = new Date(trip.created_at).toLocaleDateString();
+            acc[date] = (acc[date] || 0) + 1;
+            return acc;
+        }, {});
+
+        updateTripsPerDayChart(tripsPerDay);
+    } catch (error) {
+        console.error('Error loading trips per day:', error);
+        alert('Failed to load trips per day. Please try again.');
+    }
+}
+
+// Update trips per day chart
+function updateTripsPerDayChart(tripsPerDay) {
+    const ctx = document.getElementById('tripsPerDayChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Object.keys(tripsPerDay),
+            datasets: [{
+                label: 'Trips per Day',
+                data: Object.values(tripsPerDay),
+                borderColor: '#2196F3',
+                tension: 0.1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
     });
+}
+// Load patient status distribution
+async function loadPatientStatusDistribution() {
+    try {
+        const { data, error } = await supabase
+            .from('trips')
+            .select('patientStatus')
+            .eq('cancelled', false);
 
-    patientAnalysisData.innerHTML = `
-        <h3>Patient Status Distribution</h3>
-        <ul>${Object.entries(statusData).map(([status, count]) => `<li>${status}: ${count} patients</li>`).join('')}</ul>
-    `;
+        if (error) throw error;
 
-    // Patient status chart
+        const statusDistribution = data.reduce((acc, trip) => {
+            acc[trip.patientStatus] = (acc[trip.patientStatus] || 0) + 1;
+            return acc;
+        }, {});
+
+        updatePatientStatusChart(statusDistribution);
+    } catch (error) {
+        console.error('Error loading patient status distribution:', error);
+        alert('Failed to load patient status distribution. Please try again.');
+    }
+}
+
+// Update patient status chart
+function updatePatientStatusChart(statusDistribution) {
     const ctx = document.getElementById('patientStatusChart').getContext('2d');
     new Chart(ctx, {
-        type: 'doughnut',
+        type: 'pie',
         data: {
-            labels: Object.keys(statusData),
+            labels: Object.keys(statusDistribution),
             datasets: [{
-                data: Object.values(statusData),
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)'
-                ]
+                data: Object.values(statusDistribution),
+                backgroundColor: ['#4CAF50', '#F44336', '#FFC107']
             }]
         }
     });
 }
 
-// Generate report
-function generateReport() {
-    const reportType = document.getElementById('reportType').value;
-    const reportData = getReportData(reportType);
-    
-    const reportWindow = window.open('', 'Report', 'width=800,height=600');
-    reportWindow.document.write(`
-        <h2>${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report</h2>
-        <pre>${JSON.stringify(reportData, null, 2)}</pre>
-        <button onclick="window.print()">Print</button>
-    `);
-}
+// Load trip performance
+async function loadTripPerformance() {
+    try {
+        const { data, error } = await supabase
+            .from('trips')
+            .select('ambulance, distance, amountCharged')
+            .eq('cancelled', false);
 
-// Get report data
-function getReportData(reportType) {
-    const now = new Date();
-    let startDate;
+        if (error) throw error;
 
-    switch(reportType) {
-        case 'daily':
-            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            break;
-        case 'weekly':
-            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
-            break;
-        case 'monthly':
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-        case 'yearly':
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
+        const performanceData = data.reduce((acc, trip) => {
+            if (!acc[trip.ambulance]) {
+                acc[trip.ambulance] = { totalDistance: 0, totalAmount: 0, tripCount: 0 };
+            }
+            acc[trip.ambulance].totalDistance += trip.distance;
+            acc[trip.ambulance].totalAmount += trip.amountCharged;
+            acc[trip.ambulance].tripCount += 1;
+            return acc;
+        }, {});
+
+        updateTripPerformanceChart(performanceData);
+    } catch (error) {
+        console.error('Error loading trip performance:', error);
+        alert('Failed to load trip performance. Please try again.');
     }
-
-    const filteredTrips = trips.filter(trip => new Date(trip.date) >= startDate);
-    const totalIncome = filteredTrips.reduce((sum, trip) => sum + trip.amountCharged, 0);
-    const totalExpenditure = filteredTrips.reduce((sum, trip) => sum + trip.expenditure, 0);
-
-    return {
-        period: reportType,
-        startDate: startDate.toISOString(),
-        endDate: now.toISOString(),
-        totalTrips: filteredTrips.length,
-        totalIncome,
-        totalExpenditure,
-        netProfit: totalIncome - totalExpenditure
-    };
 }
 
-// Export all data
-function exportAllData() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(trips, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "ambulance_trip_data.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+// Update trip performance chart
+function updateTripPerformanceChart(performanceData) {
+    const ctx = document.getElementById('tripPerformanceChart').getContext('2d');
+    const labels = Object.keys(performanceData);
+    const avgDistances = labels.map(ambulance => performanceData[ambulance].totalDistance / performanceData[ambulance].tripCount);
+    const avgAmounts = labels.map(ambulance => performanceData[ambulance].totalAmount / performanceData[ambulance].tripCount);
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Avg Distance (km)',
+                    data: avgDistances,
+                    backgroundColor: '#2196F3'
+                },
+                {
+                    label: 'Avg Amount ($)',
+                    data: avgAmounts,
+                    backgroundColor: '#4CAF50'
+                }
+            ]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 }
 
-// Initialize the page
-updateTripTable();
-updateAnalysis();
-updateFinancialAnalysis();
-updateTripTracking();
-updatePatientAnalysis();
+// Load geographic analysis
+async function loadGeographicAnalysis() {
+    try {
+        const { data, error } = await supabase
+            .from('trips')
+            .select('fromCity, toCity')
+            .eq('cancelled', false);
+
+        if (error) throw error;
+
+        const cityData = data.reduce((acc, trip) => {
+            acc[trip.fromCity] = (acc[trip.fromCity] || 0) + 1;
+            acc[trip.toCity] = (acc[trip.toCity] || 0) + 1;
+            return acc;
+        }, {});
+
+        updateGeographicAnalysisChart(cityData);
+    } catch (error) {
+        console.error('Error loading geographic analysis:', error);
+        alert('Failed to load geographic analysis. Please try again.');
+    }
+}
+
+// Update geographic analysis chart
+function updateGeographicAnalysisChart(cityData) {
+    const ctx = document.getElementById('geographicAnalysisChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(cityData),
+            datasets: [{
+                label: 'Trips per City',
+                data: Object.values(cityData),
+                backgroundColor: '#9C27B0'
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Export data to CSV
+function exportToCSV() {
+    supabase
+        .from('trips')
+        .select('*')
+        .eq('cancelled', false)
+        .then(({ data, error }) => {
+            if (error) throw error;
+
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + Object.keys(data[0]).join(",") + "\n"
+                + data.map(row =>
