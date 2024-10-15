@@ -1,131 +1,124 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
 body {
     font-family: Arial, sans-serif;
-    line-height: 1.6;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
     color: #333;
 }
 
-header {
-    background-color: #4a4a4a;
-    color: #fff;
-    padding: 1rem;
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-header h1 {
-    margin-bottom: 1rem;
+h1, h2 {
+    color: #2c3e50;
 }
 
 nav ul {
     list-style-type: none;
+    padding: 0;
     display: flex;
-}
-
-nav ul li {
-    margin-right: 1rem;
+    justify-content: space-around;
+    background-color: #3498db;
+    margin-bottom: 20px;
 }
 
 nav ul li a {
-    color: #fff;
+    color: white;
     text-decoration: none;
+    padding: 10px 15px;
+    display: inline-block;
 }
 
-main {
-    padding: 2rem;
-}
-
-section {
-    margin-bottom: 2rem;
-}
-
-h2 {
-    margin-bottom: 1rem;
+nav ul li a:hover {
+    background-color: #2980b9;
 }
 
 form {
-    display: grid;
-    gap: 1rem;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
+    margin-bottom: 20px;
 }
 
 label {
-    margin-bottom: 0.5rem;
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: bold;
 }
 
 input, select, textarea {
-    padding: 0.5rem;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    box-sizing: border-box;
 }
 
 button {
-    padding: 0.5rem 1rem;
-    background-color: #4a4a4a;
-    color: #fff;
+    background-color: #2ecc71;
+    color: white;
+    padding: 10px 15px;
     border: none;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
+    font-size: 16px;
 }
 
 button:hover {
-    background-color: #333;
+    background-color: #27ae60;
 }
 
-#analysisResult, #tripList {
-    background-color: #f4f4f4;
-    padding: 1rem;
-    border-radius: 4px;
-    margin-top: 1rem;
+button#cancelTrip {
+    background-color: #e74c3c;
+}
+
+button#cancelTrip:hover {
+    background-color: #c0392b;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: #3498db;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
 }
 
 canvas {
+    margin: 20px 0;
     max-width: 100%;
-    height: auto;
-    margin-top: 1rem;
 }
 
-.search-container {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-#searchInput {
-    flex-grow: 1;
-}
-
-#exportOptions, #reportGeneration {
-    margin-top: 1rem;
-}
-
-footer {
-    background-color: #4a4a4a;
-    color: #fff;
-    text-align: center;
-    padding: 1rem;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
+#analysisResult, #financialAnalysis, #tripTrackingData, #patientAnalysisData {
+    background-color: #ecf0f1;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
 }
 
 @media (max-width: 768px) {
     nav ul {
         flex-direction: column;
     }
-
+    
     nav ul li {
-        margin-bottom: 0.5rem;
-    }
-
-    .search-container {
-        flex-direction: column;
+        margin-bottom: 5px;
     }
 }
