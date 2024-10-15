@@ -3,180 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ambulance Trip Management System</title>
+    <title>Ambulance Trip Manager</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <header>
-        <h1>Ambulance Trip Management System</h1>
+    <div class="container">
+        <h1>Ambulance Trip Manager</h1>
         <nav>
             <ul>
-                <li><a href="#newTrip">New Trip</a></li>
-                <li><a href="#tripHistory">Trip History</a></li>
-                <li><a href="#analysis">Analysis</a></li>
-                <li><a href="#export">Export Data</a></li>
+                <li><a href="#tripForm">New Trip</a></li>
+                <li><a href="#analysisSection">Analysis</a></li>
+                <li><a href="#allTripsSection">All Trips</a></li>
+                <li><a href="#financialRecords">Financial Records</a></li>
+                <li><a href="#tripTracking">Trip Tracking</a></li>
+                <li><a href="#patientAnalysis">Patient Analysis</a></li>
             </ul>
         </nav>
-    </header>
-
-    <main>
-        <section id="newTrip">
+        
+        <form id="tripForm">
             <h2>New Trip</h2>
-            <form id="tripForm">
-                <div class="form-group">
-                    <label for="patientName">Patient Name:</label>
-                    <input type="text" id="patientName" required>
-                </div>
-                <div class="form-group">
-                    <label for="patientDetails">Patient Details:</label>
-                    <textarea id="patientDetails" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="fromCity">From City:</label>
-                    <input type="text" id="fromCity" required>
-                </div>
-                <div class="form-group">
-                    <label for="fromHospital">From Hospital:</label>
-                    <input type="text" id="fromHospital" required>
-                </div>
-                <div class="form-group">
-                    <label for="toCity">To City:</label>
-                    <input type="text" id="toCity" required>
-                </div>
-                <div class="form-group">
-                    <label for="toHospital">To Hospital:</label>
-                    <input type="text" id="toHospital" required>
-                </div>
-                <div class="form-group">
-                    <label for="driverName">Driver Name:</label>
-                    <input type="text" id="driverName" required>
-                </div>
-                <div class="form-group">
-                    <label for="nursingStaff">Nursing Staff Name:</label>
-                    <input type="text" id="nursingStaff" required>
-                </div>
-                <div class="form-group">
-                    <label for="patientStatus">Patient Status:</label>
-                    <select id="patientStatus" required>
-                        <option value="stable">Stable</option>
-                        <option value="critical">Critical</option>
-                        <option value="unpredictable">Unpredictable</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="statusDescription">Status Description:</label>
-                    <textarea id="statusDescription"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="distance">Distance (km):</label>
-                    <input type="number" id="distance" required>
-                </div>
-                <div class="form-group">
-                    <label for="chargePerKm">Charge per km (₹):</label>
-                    <input type="number" id="chargePerKm" required>
-                </div>
-                <div class="form-group">
-                    <label for="ambulanceNumber">Ambulance Number:</label>
-                    <select id="ambulanceNumber" required>
-                        <option value="AMB001">AMB001</option>
-                        <option value="AMB002">AMB002</option>
-                        <option value="AMB003">AMB003</option>
-                        <option value="AMB004">AMB004</option>
-                        <option value="AMB005">AMB005</option>
-                        <option value="AMB006">AMB006</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="amountCharged">Amount Charged (₹):</label>
-                    <input type="number" id="amountCharged" required>
-                </div>
-                <div class="form-group">
-                    <label for="paymentMethod">Payment Method:</label>
-                    <select id="paymentMethod" required>
-                        <option value="online">Online</option>
-                        <option value="offline">Offline</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="expenditure">Total Expenditure (₹):</label>
-                    <input type="number" id="expenditure" required>
-                </div>
-                <div class="form-group">
-                    <label for="driverExpenditure">Driver Expenditure (₹):</label>
-                    <input type="number" id="driverExpenditure" required>
-                </div>
-                <div class="form-group">
-                    <label for="fuelExpenditure">Fuel Expenditure (₹):</label>
-                    <input type="number" id="fuelExpenditure" required>
-                </div>
-                <div class="form-group">
-                    <label for="maintenanceExpenditure">Maintenance Expenditure (₹):</label>
-                    <input type="number" id="maintenanceExpenditure" required>
-                </div>
-                <div class="form-group">
-                    <label for="miscellaneousExpenditure">Miscellaneous Expenditure (₹):</label>
-                    <input type="number" id="miscellaneousExpenditure" required>
-                </div>
-                <div class="form-group">
-                    <label for="nursingExpenditure">Nursing Staff Expenditure (₹):</label>
-                    <input type="number" id="nursingExpenditure" required>
-                </div>
-                <button type="submit">Submit Trip</button>
-            </form>
-        </section>
-
-        <section id="tripHistory">
-            <h2>Trip History</h2>
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Search trips...">
-                <select id="searchCriteria">
-                    <option value="date">Date</option>
-                    <option value="patientName">Patient Name</option>
-                    <option value="ambulanceNumber">Ambulance Number</option>
-                    <option value="fromCity">From City</option>
-                    <option value="toCity">To City</option>
-                    <option value="amountCharged">Amount Charged</option>
-                </select>
-                <button id="searchButton">Search</button>
-            </div>
-            <div id="tripList"></div>
-        </section>
-
-        <section id="analysis">
-            <h2>Analysis</h2>
+            <label for="patientName">Patient Name:</label>
+            <input type="text" id="patientName" required>
+            
+            <label for="patientDetails">Patient Details:</label>
+            <textarea id="patientDetails" required></textarea>
+            
+            <label for="fromCity">From (City):</label>
+            <input type="text" id="fromCity" required>
+            
+            <label for="fromHospital">From Hospital:</label>
+            <input type="text" id="fromHospital" required>
+            
+            <label for="toCity">To (City):</label>
+            <input type="text" id="toCity" required>
+            
+            <label for="toHospital">To Hospital:</label>
+            <input type="text" id="toHospital" required>
+            
+            <label for="driverName">Driver Name:</label>
+            <input type="text" id="driverName" required>
+            
+            <label for="nursingStaff">Nursing Staff Name:</label>
+            <input type="text" id="nursingStaff" required>
+            
+            <label for="patientStatus">Patient Status:</label>
+            <select id="patientStatus" required>
+                <option value="stable">Stable</option>
+                <option value="critical">Critical</option>
+                <option value="unpredictable">Unpredictable</option>
+            </select>
+            
+            <label for="statusDescription">Status Description:</label>
+            <textarea id="statusDescription" required></textarea>
+            
+            <label for="distance">Distance (Optional):</label>
+            <input type="number" id="distance" placeholder="Distance in km">
+            
+            <label for="chargePerKm">Charge Per KM (Optional):</label>
+            <input type="number" id="chargePerKm" placeholder="Charge in INR">
+            
+            <label for="ambulanceNumber">Ambulance Number:</label>
+            <select id="ambulanceNumber" required>
+                <option value="1">Ambulance 1</option>
+                <option value="2">Ambulance 2</option>
+                <option value="3">Ambulance 3</option>
+                <option value="4">Ambulance 4</option>
+                <option value="5">Ambulance 5</option>
+                <option value="6">Ambulance 6</option>
+            </select>
+            
+            <label for="amountCharged">Amount Charged:</label>
+            <input type="number" id="amountCharged" required>
+            
+            <label for="expenditure">Total Expenditure:</label>
+            <input type="number" id="expenditure" required>
+            
+            <label for="driverExpenditure">Driver Expenditure:</label>
+            <input type="number" id="driverExpenditure" required>
+            <label for="fuelExpenditure">Fuel Expenditure:</label>
+            <input type="number" id="fuelExpenditure" required>
+            <label for="maintenanceExpenditure">Maintenance Expenditure:</label>
+            <input type="number" id="maintenanceExpenditure" required>
+            <label for="miscellaneousExpenditure">Miscellaneous Expenditure:</label>
+            <input type="number" id="miscellaneousExpenditure" required>
+            <label for="nursingExpenditure">Nursing Staff Expenditure:</label>
+            <input type="number" id="nursingExpenditure" required>
+            
+            <button type="submit">Submit Trip</button>
+            <button type="button" id="cancelTrip">Cancel Trip</button>
+        </form>
+        
+        <div id="analysisSection">
+            <h2>Trip Analysis</h2>
             <div id="analysisResult"></div>
-            <canvas id="tripChart"></canvas>
-        </section>
-
-        <section id="export">
-            <h2>Export Data</h2>
-            <div id="exportOptions">
-                <button id="exportJSON">Export as JSON</button>
-                <button id="exportCSV">Export as CSV</button>
-            </div>
-            <div id="reportGeneration">
-                <h3>Generate Report</h3>
+            <canvas id="incomeExpenditureChart"></canvas>
+        </div>
+        
+        <div id="allTripsSection">
+            <h2>All Trips</h2>
+            <table id="tripTable">
+                <thead>
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Amount Charged</th>
+                        <th>Expenditure</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tripData">
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="financialRecords">
+            <h2>Financial Records</h2>
+            <div id="financialAnalysis"></div>
+            <canvas id="expenditureBreakdownChart"></canvas>
+        </div>
+        
+        <div id="tripTracking">
+            <h2>Trip Tracking</h2>
+            <div id="tripTrackingData"></div>
+        </div>
+        
+        <div id="patientAnalysis">
+            <h2>Patient Analysis</h2>
+            <div id="patientAnalysisData"></div>
+            <canvas id="patientStatusChart"></canvas>
+        </div>
+        
+        <div id="dataExportSection">
+            <h2>Data Export and Reports</h2>
+            <button id="exportAllData">Export All Data</button>
+            <div>
                 <select id="reportType">
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
                     <option value="monthly">Monthly</option>
                     <option value="yearly">Yearly</option>
-                    <option value="custom">Custom</option>
                 </select>
-                <div id="customDateRange" style="display: none;">
-                    <input type="date" id="startDate">
-                    <input type="date" id="endDate">
-                </div>
                 <button id="generateReport">Generate Report</button>
             </div>
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2023 Ambulance Trip Management System</p>
-    </footer>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
-                        </html>
+</html>
