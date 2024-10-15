@@ -6,9 +6,6 @@
     <title>Ambulance Trip Management System</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 </head>
 <body>
     <header>
@@ -16,9 +13,8 @@
         <nav>
             <ul>
                 <li><a href="#newTrip">New Trip</a></li>
+                <li><a href="#tripHistory">Trip History</a></li>
                 <li><a href="#analysis">Analysis</a></li>
-                <li><a href="#finances">Finances</a></li>
-                <li><a href="#tracking">Tracking</a></li>
                 <li><a href="#export">Export Data</a></li>
             </ul>
         </nav>
@@ -74,11 +70,11 @@
                 </div>
                 <div class="form-group">
                     <label for="distance">Distance (km):</label>
-                    <input type="number" id="distance">
+                    <input type="number" id="distance" required>
                 </div>
                 <div class="form-group">
                     <label for="chargePerKm">Charge per km (₹):</label>
-                    <input type="number" id="chargePerKm">
+                    <input type="number" id="chargePerKm" required>
                 </div>
                 <div class="form-group">
                     <label for="ambulanceNumber">Ambulance Number:</label>
@@ -94,7 +90,10 @@
                 <div class="form-group">
                     <label for="amountCharged">Amount Charged (₹):</label>
                     <input type="number" id="amountCharged" required>
-                    <select id="paymentMethod">
+                </div>
+                <div class="form-group">
+                    <label for="paymentMethod">Payment Method:</label>
+                    <select id="paymentMethod" required>
                         <option value="online">Online</option>
                         <option value="offline">Offline</option>
                     </select>
@@ -124,46 +123,37 @@
                     <input type="number" id="nursingExpenditure" required>
                 </div>
                 <button type="submit">Submit Trip</button>
-                <button type="button" id="cancelTrip">Cancel Trip</button>
             </form>
+        </section>
+
+        <section id="tripHistory">
+            <h2>Trip History</h2>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search trips...">
+                <select id="searchCriteria">
+                    <option value="date">Date</option>
+                    <option value="patientName">Patient Name</option>
+                    <option value="ambulanceNumber">Ambulance Number</option>
+                    <option value="fromCity">From City</option>
+                    <option value="toCity">To City</option>
+                    <option value="amountCharged">Amount Charged</option>
+                </select>
+                <button id="searchButton">Search</button>
+            </div>
+            <div id="tripList"></div>
         </section>
 
         <section id="analysis">
             <h2>Analysis</h2>
             <div id="analysisResult"></div>
-            <canvas id="incomeExpenditureChart"></canvas>
-        </section>
-
-        <section id="finances">
-            <h2>Finances</h2>
-            <div id="financialAnalysis"></div>
-            <canvas id="expenditureBreakdownChart"></canvas>
-        </section>
-
-        <section id="tracking">
-            <h2>Trip Tracking</h2>
-            <div id="tripTrackingData"></div>
-        </section>
-
-        <section id="patientAnalysis">
-            <h2>Patient Analysis</h2>
-            <div id="patientAnalysisData"></div>
-            <canvas id="patientStatusChart"></canvas>
-        </section>
-
-        <section id="advancedAnalytics">
-            <h2>Advanced Analytics</h2>
-            <canvas id="timeSeriesChart"></canvas>
-            <canvas id="geographicDistribution"></canvas>
-            <canvas id="financialTrends"></canvas>
+            <canvas id="tripChart"></canvas>
         </section>
 
         <section id="export">
             <h2>Export Data</h2>
-            <div id="dataExportSection">
-                <button id="exportAllData">Export All Data (JSON)</button>
+            <div id="exportOptions">
+                <button id="exportJSON">Export as JSON</button>
                 <button id="exportCSV">Export as CSV</button>
-                <button id="exportExcel">Export as Excel</button>
             </div>
             <div id="reportGeneration">
                 <h3>Generate Report</h3>
@@ -174,8 +164,10 @@
                     <option value="yearly">Yearly</option>
                     <option value="custom">Custom</option>
                 </select>
-                <input type="date" id="startDate" style="display: none;">
-                <input type="date" id="endDate" style="display: none;">
+                <div id="customDateRange" style="display: none;">
+                    <input type="date" id="startDate">
+                    <input type="date" id="endDate">
+                </div>
                 <button id="generateReport">Generate Report</button>
             </div>
         </section>
@@ -187,4 +179,4 @@
 
     <script src="script.js"></script>
 </body>
-    </html>
+                        </html>
